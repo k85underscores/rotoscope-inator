@@ -297,7 +297,7 @@ class ControllerWindow(QWidget):
     def load_external_profile(self):
         options = QFileDialog.Options()
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "Load Configuration Profile", "", "Rotoscope Inator Profile (*.rotonator)", options=options
+            self, "Load Configuration Profile", "", "Rotoscope-Inator Profile (*.rotonator)", options=options
         )
         if not file_path:
             return
@@ -348,7 +348,7 @@ class ControllerWindow(QWidget):
     def save_external_profile(self):
         options = QFileDialog.Options()
         file_path, _ = QFileDialog.getSaveFileName(
-            self, "Save Configuration Profile", "", "Rotoscope Inator Profile (*.rotonator)", options=options
+            self, "Save Configuration Profile", "", "Rotoscope-Inator Profile (*.rotonator)", options=options
         )
         if not file_path:
             return

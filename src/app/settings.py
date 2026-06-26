@@ -33,6 +33,7 @@ def get_license() -> str:
 
 
 DEFAULT_SETTINGS = {
+    "application": "Rotoscope-Inator",
     "version": get_version(),
     "overlay_x": 100,
     "overlay_y": 100,

@@ -6,11 +6,8 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-    ('images/doof.ico', 'images'), 
-    ('images/no_image.png', 'images'), 
-    ('images/gallery.ico', 'images'), 
-    ('images/overlay.ico', 'images'), 
-    ('images/loading.png', 'images'),
+    ('images/', 'images/'), 
+    ('presets/', 'presets/'),
     ('version.txt', '.'),
     ('LICENSE', '.'),
     ],

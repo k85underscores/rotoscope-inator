@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import (
 
 from .gallery import ImageManagerWindow
 from .hotkeys import GlobalHotkeyWorker
-from .settings import DEFAULT_SETTINGS, ICON_PATH, save_settings, APPDATA_DIR
+from .settings import DEFAULT_SETTINGS, ICON_PATH, save_settings, APPDATA_DIR, PRESETS_DIR
 from .about import AboutWindow
 
 
@@ -68,6 +68,21 @@ class ControllerWindow(QWidget):
         self.btn_save_profile = QPushButton("Save Configuration...")
         self.btn_save_profile.clicked.connect(self.save_external_profile)
         col1_layout.addWidget(self.btn_save_profile)
+
+        presets_btn = QToolButton()
+        presets_btn.setText("Presets...")
+        presets_btn.setFixedWidth(70)
+        presets_btn.setPopupMode(QToolButton.InstantPopup)
+        presets_menu = QMenu(presets_btn)
+        for fname in sorted(os.listdir(PRESETS_DIR)):
+            fpath = os.path.join(PRESETS_DIR, fname)
+            if not os.path.isfile(fpath):
+               continue
+            action = QAction(fname, self)
+            action.triggered.connect(lambda checked, p=fpath: self.load_preset(p))
+            presets_menu.addAction(action)
+        presets_btn.setMenu(presets_menu)
+        col1_layout.addWidget(presets_btn)
 
         col1_layout.addWidget(QLabel("<b>Info</b>"))
         self.btn_about = QPushButton("About")
@@ -348,43 +363,56 @@ class ControllerWindow(QWidget):
                 loaded_data = json.load(f)
 
             updated_settings = {**DEFAULT_SETTINGS, **loaded_data}
-            self.settings.clear()
-            self.settings.update(updated_settings)
-
-            self.overlay.move(self.settings["overlay_x"], self.settings["overlay_y"])
-            self.overlay.resize(self.settings["overlay_w"], self.settings["overlay_h"])
-            self.overlay.setWindowOpacity(self.settings["opacity"] / 100.0)
-            self.overlay.set_scale_mode(self.settings["scale_mode"])
-            self.overlay.set_bar_color(self.settings["bar_color"])
-            self.overlay.toggle_filename_visibility(self.settings["show_filename"])
-            self.overlay.load_current_image()
-
-            self.show_overlay_checkbox.setChecked(self.settings["show_overlay"])
-            self.on_top_checkbox.setChecked(self.settings["controller_on_top"])
-            self.show_filename_checkbox.setChecked(self.settings["show_filename"])
-            self.slider.setValue(self.settings["opacity"])
-            self.mode_dropdown.setCurrentIndex(self.settings["scale_mode"])
-
-            color_opts = ["Black", "White", "Magenta"]
-            if self.settings["bar_color"] in color_opts:
-                self.color_dropdown.setCurrentIndex(color_opts.index(self.settings["bar_color"]))
-
-            self.back_hk_txt.setText(self.settings.get("hotkey_back", "4"))
-            self.next_hk_txt.setText(self.settings.get("hotkey_next", "6"))
-            self.toggle_hk_txt.setText(self.settings.get("hotkey_toggle", "5"))
-            self.enable_hotkeys_checkbox.setChecked(self.settings.get("enable_hotkeys", True))
-            self.update_hotkey_controls_enabled(self.settings.get("enable_hotkeys", True))
-
-            if self.settings["show_overlay"]:
-                self.overlay.show()
-            else:
-                self.overlay.hide()
-
-            self.hotkey_worker.update_hooks()
-            self.update_counter_text()
+            self._apply_loaded_settings(updated_settings)
             save_settings(self.settings)
         except Exception as e:
             QMessageBox.critical(self, "Profile Load Error", f"Failed to parse profile file:\n\n{e}")
+
+    def load_preset(self, file_path):
+        try:
+            with open(file_path, "r") as f:
+                loaded_data = json.load(f)
+            updated_settings = {**DEFAULT_SETTINGS, **loaded_data}
+            self._apply_loaded_settings(updated_settings)
+            save_settings(self.settings)
+        except Exception as e:
+            QMessageBox.critical(self, "Preset Load Error", f"Failed to load preset:\n\n{e}")
+
+    def _apply_loaded_settings(self, updated_settings):
+        self.settings.clear()
+        self.settings.update(updated_settings)
+
+        self.overlay.move(self.settings["overlay_x"], self.settings["overlay_y"])
+        self.overlay.resize(self.settings["overlay_w"], self.settings["overlay_h"])
+        self.overlay.setWindowOpacity(self.settings["opacity"] / 100.0)
+        self.overlay.set_scale_mode(self.settings["scale_mode"])
+        self.overlay.set_bar_color(self.settings["bar_color"])
+        self.overlay.toggle_filename_visibility(self.settings["show_filename"])
+        self.overlay.load_current_image()
+
+        self.show_overlay_checkbox.setChecked(self.settings["show_overlay"])
+        self.on_top_checkbox.setChecked(self.settings["controller_on_top"])
+        self.show_filename_checkbox.setChecked(self.settings["show_filename"])
+        self.slider.setValue(self.settings["opacity"])
+        self.mode_dropdown.setCurrentIndex(self.settings["scale_mode"])
+
+        color_opts = ["Black", "White", "Magenta"]
+        if self.settings["bar_color"] in color_opts:
+            self.color_dropdown.setCurrentIndex(color_opts.index(self.settings["bar_color"]))
+
+        self.back_hk_txt.setText(self.settings.get("hotkey_back", "4"))
+        self.next_hk_txt.setText(self.settings.get("hotkey_next", "6"))
+        self.toggle_hk_txt.setText(self.settings.get("hotkey_toggle", "5"))
+        self.enable_hotkeys_checkbox.setChecked(self.settings.get("enable_hotkeys", True))
+        self.update_hotkey_controls_enabled(self.settings.get("enable_hotkeys", True))
+
+        if self.settings["show_overlay"]:
+            self.overlay.show()
+        else:
+            self.overlay.hide()
+
+        self.hotkey_worker.update_hooks()
+        self.update_counter_text()
 
     def save_external_profile(self):
         options = QFileDialog.Options()

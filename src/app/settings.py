@@ -14,6 +14,7 @@ LOADING_PATH = get_abs_file_path("images/loading.png")
 ICON_PATH = get_abs_file_path("images/doof.ico")
 OVERLAY_ICON_PATH = get_abs_file_path("images/overlay.ico")
 GALLERY_ICON_PATH = get_abs_file_path("images/gallery.ico")
+PRESETS_DIR = get_abs_file_path("presets/")
 
 VERSION = get_abs_file_path("version.txt")
 LICENSE = get_abs_file_path("LICENSE")

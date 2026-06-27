@@ -31,7 +31,8 @@ class AboutWindow(QWidget):
         desc_lbl.setAlignment(Qt.AlignCenter)
         layout.addWidget(desc_lbl)
         
-        version_lbl = QLabel(f"Version {get_version()}")
+        version_lbl = QLabel(f'<a href="https://github.com/k85underscores/rotoscope-inator/releases">Version {get_version()}</a>')
+        version_lbl.setOpenExternalLinks(True)
         version_lbl.setAlignment(Qt.AlignCenter)
         layout.addWidget(version_lbl)
 

@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QPushButton,
     QSlider,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -70,9 +71,20 @@ class ControllerWindow(QWidget):
         self.btn_about.clicked.connect(self.open_about_window)
         col1_layout.addWidget(self.btn_about)
         
-        self.btn_about = QPushButton("AppData Folder")
-        self.btn_about.clicked.connect(lambda: os.startfile(APPDATA_DIR))
-        col1_layout.addWidget(self.btn_about)
+        self.btn_appdata = QPushButton("AppData Folder")
+        self.btn_appdata.clicked.connect(lambda: os.startfile(APPDATA_DIR))
+        col1_layout.addWidget(self.btn_appdata)
+
+        col1_layout.addWidget(QLabel("<b>Preview</b>"))
+        self.preview_label = QLabel("No Preview")
+        self.preview_label.setFixedHeight(100)
+        self.preview_label.setAlignment(Qt.AlignCenter)
+        self.preview_label.setWordWrap(True)
+        self.preview_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.preview_label.setStyleSheet(
+            "background-color: #181818; border: 1px solid #666; color: #ccc;"
+        )
+        col1_layout.addWidget(self.preview_label)
 
         col1_layout.addStretch()
 
@@ -203,6 +215,7 @@ class ControllerWindow(QWidget):
         self.hotkey_worker.toggle_triggered.connect(self.hotkey_toggle_overlay)
 
         self.update_counter_text()
+        self.update_preview()
 
     def open_about_window(self):
         if not self.about_win or not self.about_win.isVisible():
@@ -399,6 +412,26 @@ class ControllerWindow(QWidget):
         else:
             current = self.settings["current_image_idx"] + 1
             self.img_counter_lbl.setText(f"Image {current} of {total}")
+        self.update_preview()
+
+    def update_preview(self):
+        if not self.settings["images_list"]:
+            self.preview_label.setPixmap(QIcon().pixmap(1, 1))
+            self.preview_label.setText("No Preview")
+            return
+        pixmap = getattr(self.overlay, "raw_pixmap", None)
+        if not pixmap or pixmap.isNull():
+            self.preview_label.setPixmap(QIcon().pixmap(1, 1))
+            self.preview_label.setText("No Preview")
+            return
+        self.preview_label.setText("")
+        scaled = pixmap.scaled(
+            self.preview_label.width() or 100,
+            self.preview_label.height() or 100,
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation,
+        )
+        self.preview_label.setPixmap(scaled)
 
     def cycle_image(self, shift):
         total = len(self.settings["images_list"])

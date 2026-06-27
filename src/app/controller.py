@@ -17,6 +17,9 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QVBoxLayout,
     QWidget,
+    QToolButton,
+    QAction,
+    QMenu
 )
 
 from .gallery import ImageManagerWindow
@@ -71,10 +74,6 @@ class ControllerWindow(QWidget):
         self.btn_about.clicked.connect(self.open_about_window)
         col1_layout.addWidget(self.btn_about)
         
-        self.btn_appdata = QPushButton("AppData Folder")
-        self.btn_appdata.clicked.connect(lambda: os.startfile(APPDATA_DIR))
-        col1_layout.addWidget(self.btn_appdata)
-
         col1_layout.addWidget(QLabel("<b>Preview</b>"))
         self.preview_label = QLabel("No Preview")
         self.preview_label.setFixedHeight(100)
@@ -85,6 +84,23 @@ class ControllerWindow(QWidget):
             "background-color: #181818; border: 1px solid #666; color: #ccc;"
         )
         col1_layout.addWidget(self.preview_label)
+
+        more_btn = QToolButton()
+        more_btn.setText("More...")
+        more_btn.setFixedWidth(70)
+        more_btn.setPopupMode(QToolButton.InstantPopup)
+        more_menu = QMenu(more_btn)
+
+        appdata_action = QAction("AppData Folder", self)
+        appdata_action.triggered.connect(lambda: os.startfile(APPDATA_DIR))
+        more_menu.addAction(appdata_action)
+
+        reset_action = QAction("Reset Settings", self)
+        reset_action.triggered.connect(self.reset_settings)
+        more_menu.addAction(reset_action)
+        
+        more_btn.setMenu(more_menu)
+        col1_layout.addWidget(more_btn)
 
         col1_layout.addStretch()
 
@@ -306,6 +322,18 @@ class ControllerWindow(QWidget):
         self.overlay.move(self.settings["overlay_x"], self.settings["overlay_y"])
         self.overlay.resize(self.settings["overlay_w"], self.settings["overlay_h"])
         save_settings(self.settings)
+
+    def reset_settings(self):
+        reply = QMessageBox.question(
+            self,
+            "Confirm Reset",
+            "Program will close to reset settings",
+            QMessageBox.Ok | QMessageBox.Cancel,
+            QMessageBox.Cancel,
+        )
+        if reply == QMessageBox.Ok:
+            self.settings.update(DEFAULT_SETTINGS.copy())
+            self.close()
 
     def load_external_profile(self):
         options = QFileDialog.Options()

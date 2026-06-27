@@ -22,9 +22,10 @@ from PyQt5.QtWidgets import (
     QMenu
 )
 
+from .settings import DEFAULT_SETTINGS, ICON_PATH, save_settings, APPDATA_DIR, PRESETS_DIR
 from .gallery import ImageManagerWindow
 from .hotkeys import GlobalHotkeyWorker
-from .settings import DEFAULT_SETTINGS, ICON_PATH, save_settings, APPDATA_DIR, PRESETS_DIR
+from .adjust import FineAdjustWindow
 from .about import AboutWindow
 
 
@@ -36,6 +37,7 @@ class ControllerWindow(QWidget):
         self.manager_win = None
         self.recording_target = None
         self.about_win = None
+        self.fine_adjust_win = None
 
         self.setWindowTitle("Overlay Controller")
         self.setWindowIcon(QIcon(ICON_PATH))
@@ -145,6 +147,10 @@ class ControllerWindow(QWidget):
         self.btn_reset_pos.clicked.connect(self.reset_overlay_position)
         col2_layout.addWidget(self.btn_reset_pos)
 
+        self.btn_fine_adjust = QPushButton("Fine Position Adjustment...")
+        self.btn_fine_adjust.clicked.connect(self.open_fine_adjust_window)
+        col2_layout.addWidget(self.btn_fine_adjust)
+
         self.btn_fit_aspect = QPushButton("Fit Window to Image")
         self.btn_fit_aspect.clicked.connect(self.overlay.fit_window_to_image_ratio)
         col2_layout.addWidget(self.btn_fit_aspect)
@@ -248,14 +254,6 @@ class ControllerWindow(QWidget):
         self.update_counter_text()
         self.update_preview()
 
-    def open_about_window(self):
-        if not self.about_win or not self.about_win.isVisible():
-            self.about_win = AboutWindow()
-            self.about_win.show()
-        else:
-            self.about_win.raise_()
-            self.about_win.activateWindow()
-
     def update_hotkey_controls_enabled(self, enabled):
         self.back_hk_txt.setEnabled(enabled)
         self.next_hk_txt.setEnabled(enabled)
@@ -319,7 +317,6 @@ class ControllerWindow(QWidget):
         save_settings(self.settings)
 
     def hotkey_toggle_overlay(self):
-        """Action hook to flip states when triggered via background system inputs."""
         new_state = not self.settings["show_overlay"]
         self.show_overlay_checkbox.setChecked(new_state)
 
@@ -499,10 +496,37 @@ class ControllerWindow(QWidget):
         self.update_counter_text()
         if self.manager_win and self.manager_win.isVisible():
             self.manager_win.populate_list()
+        
+    def open_about_window(self):
+        if not self.about_win or not self.about_win.isVisible():
+            self.about_win = AboutWindow()
+            self.about_win.show()
+        else:
+            self.about_win.raise_()
+            self.about_win.activateWindow()
 
     def open_manager_window(self):
-        self.manager_win = ImageManagerWindow(self.overlay, self.settings, self.update_counter_text)
-        self.manager_win.show()
+        if not self.manager_win or not self.manager_win.isVisible():
+            self.manager_win = ImageManagerWindow(
+                self.overlay,
+                self.settings,
+                self.update_counter_text
+            )
+            self.manager_win.show()
+        else:
+            self.manager_win.raise_()
+            self.manager_win.activateWindow()
+
+    def open_fine_adjust_window(self):
+        if not self.fine_adjust_win or not self.fine_adjust_win.isVisible():
+            self.fine_adjust_win = FineAdjustWindow(
+                self.overlay,
+                self.settings
+            )
+            self.fine_adjust_win.show()
+        else:
+            self.fine_adjust_win.raise_()
+            self.fine_adjust_win.activateWindow()
 
     def closeEvent(self, a0):
         self.hotkey_worker.cleanup()
@@ -513,5 +537,7 @@ class ControllerWindow(QWidget):
             self.manager_win.close()
         if self.about_win:
             self.about_win.close()
+        if self.fine_adjust_win:
+            self.fine_adjust_win.close()
         self.overlay.close()
         return super().closeEvent(a0)

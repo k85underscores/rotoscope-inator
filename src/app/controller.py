@@ -121,7 +121,7 @@ class ControllerWindow(QWidget):
         self.label = QLabel(f"Opacity: {self.settings['opacity']}%")
         col2_layout.addWidget(self.label)
         self.slider = QSlider(Qt.Horizontal)
-        self.slider.setMinimum(5)
+        self.slider.setMinimum(0)
         self.slider.setMaximum(100)
         self.slider.setValue(self.settings['opacity'])
         self.slider.valueChanged.connect(self.change_opacity)

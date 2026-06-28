@@ -1,4 +1,5 @@
 import json
+import sys
 import os
 
 import keyboard
@@ -251,8 +252,14 @@ class ControllerWindow(QWidget):
         self.hotkey_worker.next_triggered.connect(lambda: self.cycle_image(1))
         self.hotkey_worker.toggle_triggered.connect(self.hotkey_toggle_overlay)
 
+        self.try_loading_laucher_file()
         self.update_counter_text()
         self.update_preview()
+
+    def try_loading_laucher_file(self):  
+        if len(sys.argv) > 1:
+            file_path = sys.argv[1]
+            self.load_preset(file_path)
 
     def update_hotkey_controls_enabled(self, enabled):
         self.back_hk_txt.setEnabled(enabled)
